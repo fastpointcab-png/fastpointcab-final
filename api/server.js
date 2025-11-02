@@ -41,7 +41,12 @@ app.post("/api/book", async (req, res) => {
       return res.status(500).json({ error: "Missing Brevo API key" });
     }
 
-    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
+    if (typeof apiInstance.setApiKey === "function") {
+  apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
+} else if (apiInstance.authentications?.apiKey) {
+  apiInstance.authentications.apiKey.apiKey = apiKey;
+}
+
 
     await apiInstance.sendTransacEmail({
       sender: { name: "FastPoint Cab", email: "fastpointcab@gmail.com" },
