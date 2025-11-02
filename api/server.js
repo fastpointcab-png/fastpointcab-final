@@ -32,30 +32,21 @@ app.post("/api/book", async (req, res) => {
 
     console.log("📩 Booking received:", req.body);
 
-   // ✅ Initialize Brevo client safely (supports all SDK versions)
-const apiInstance = new brevo.TransactionalEmailsApi();
-const apiKey = process.env.BREVO_API_KEY;
+    // ✅ Correct Brevo client initialization for @getbrevo/brevo v1+
+    const brevoClient = brevo.ApiClient.instance;
+    const apiKey = brevoClient.authentications["api-key"];
 
-if (!apiKey) {
-  console.error("❌ BREVO_API_KEY is missing in environment variables.");
-  return res.status(500).json({ error: "Missing Brevo API key" });
-}
+    if (!process.env.BREVO_API_KEY) {
+      console.error("❌ BREVO_API_KEY is missing in environment variables.");
+      return res.status(500).json({ error: "Missing Brevo API key" });
+    }
 
-// ✅ Handle both old & new SDK structures
-if (typeof apiInstance.setApiKey === "function") {
-  // Newer SDK style
-  apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
-} else if (apiInstance.authentications?.apiKey) {
-  // Older SDK style
-  apiInstance.authentications.apiKey.apiKey = apiKey;
-} else {
-  console.error("❌ Failed to initialize Brevo API key properly.");
-  return res.status(500).json({ error: "Brevo initialization failed" });
-}
+    apiKey.apiKey = process.env.BREVO_API_KEY;
 
+    const brevoApi = new brevo.TransactionalEmailsApi();
 
-    // ✅ Send the booking email
-    await apiInstance.sendTransacEmail({
+    // ✅ Send email
+    await brevoApi.sendTransacEmail({
       sender: { name: "FastPoint Cab", email: "fastpointcab@gmail.com" },
       to: [{ email: "fastpointcab@gmail.com" }],
       subject: "🚖 New Taxi Booking Request",
@@ -78,3 +69,17 @@ if (typeof apiInstance.setApiKey === "function") {
     res.status(500).json({ error: err.message || "Server error" });
   }
 });
+
+// ✅ Fallback route (for SPA)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
+});
+
+// --- Local development only ---
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+
+// --- Export for Vercel ---
+export default app;
