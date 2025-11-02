@@ -31,14 +31,19 @@ app.post("/api/book", async (req, res) => {
     }
 
     console.log("📩 Booking received:", req.body);
-    console.log("🔑 Using BREVO_API_KEY:", process.env.BREVO_API_KEY ? "✅ exists" : "❌ missing");
 
-    // ✅ Correct Brevo initialization
-    const brevoClient = new brevo.TransactionalEmailsApi();
-    const apiKey = brevo.ApiClient.instance.authentications['apiKey'];
-    apiKey.apiKey = process.env.BREVO_API_KEY;
+    // ✅ Correct initialization for @getbrevo/brevo
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    const apiKey = process.env.BREVO_API_KEY;
 
-    await brevoClient.sendTransacEmail({
+    if (!apiKey) {
+      console.error("❌ BREVO_API_KEY is missing in environment variables.");
+      return res.status(500).json({ error: "Missing Brevo API key" });
+    }
+
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
+
+    await apiInstance.sendTransacEmail({
       sender: { name: "FastPoint Cab", email: "fastpointcab@gmail.com" },
       to: [{ email: "fastpointcab@gmail.com" }],
       subject: "🚖 New Taxi Booking Request",
