@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       try {
-        const res = await fetch('/api/book', {
+        const res = await fetch('/api/server.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
