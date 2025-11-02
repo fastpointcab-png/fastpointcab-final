@@ -7,8 +7,9 @@
     "start": "node api/server.js"
   },
 "engines": {
-  "node": "18.x"
+  "node": "20.x"
 }
+
 
 
 ,
