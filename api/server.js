@@ -9,22 +9,17 @@ import { fileURLToPath } from "url";
 dotenv.config();
 const app = express();
 
-// Helpers for ES modules
+// Helpers for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Serve frontend files (make sure your index.html is inside `public`)
+// ✅ Serve frontend
 app.use(express.static(path.join(__dirname, "../public")));
 
-// --- Test API ---
-app.get("/api/test", (req, res) => {
-  res.json({ message: "✅ API is alive and working" });
-});
-
-// --- Booking API route ---
+// --- API Route ---
 app.post("/api/book", async (req, res) => {
   try {
     const { name, phone, pickup, drop, date, time, vehicle } = req.body;
@@ -32,6 +27,9 @@ app.post("/api/book", async (req, res) => {
     if (!name || !phone || !pickup || !drop) {
       return res.status(400).json({ error: "Missing required fields" });
     }
+
+    console.log("📩 Booking received:", req.body);
+    console.log("🔑 Using BREVO_API_KEY:", process.env.BREVO_API_KEY ? "✅ exists" : "❌ missing");
 
     const client = new brevo.TransactionalEmailsApi();
     client.authentications["apiKey"].apiKey = process.env.BREVO_API_KEY;
@@ -52,23 +50,24 @@ app.post("/api/book", async (req, res) => {
       `,
     });
 
+    console.log("✅ Email sent successfully!");
     res.status(200).json({ success: true, message: "Booking sent successfully!" });
   } catch (err) {
     console.error("❌ Booking error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: err.message || "Server error" });
   }
 });
 
-// ✅ Fallback route — serve index.html for any unknown path
+// ✅ Fallback: frontend routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// --- Local run only ---
+// --- Local development ---
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 }
 
-// ✅ Export for Vercel
+// --- Export for Vercel ---
 export default app;
