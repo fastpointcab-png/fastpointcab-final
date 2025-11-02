@@ -32,29 +32,28 @@ app.post("/api/book", async (req, res) => {
 
     console.log("📩 Booking received:", req.body);
 
-   // ✅ Initialize Brevo client correctly
-const apiInstance = new brevo.TransactionalEmailsApi();
-const apiKey = process.env.BREVO_API_KEY;
+    // ✅ Initialize Brevo client
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    const apiKey = process.env.BREVO_API_KEY;
 
-if (!apiKey) {
-  console.error("❌ BREVO_API_KEY is missing in environment variables.");
-  return res.status(500).json({ error: "Missing Brevo API key" });
-}
+    if (!apiKey) {
+      console.error("❌ BREVO_API_KEY is missing in environment variables.");
+      return res.status(500).json({ error: "Missing Brevo API key" });
+    }
 
-// ✅ Handle both SDK formats (old/new)
-if (apiInstance.setApiKey) {
-  // Newer SDK style
-  apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
-} else if (apiInstance.authentications && apiInstance.authentications.apiKey) {
-  // Older SDK style
-  apiInstance.authentications.apiKey.apiKey = apiKey;
-} else {
-  console.error("❌ Failed to initialize Brevo API key properly.");
-  return res.status(500).json({ error: "Brevo initialization failed" });
-}
+    // ✅ Handle both SDK formats (old/new)
+    if (apiInstance.setApiKey) {
+      // Newer SDK style
+      apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
+    } else if (apiInstance.authentications && apiInstance.authentications.apiKey) {
+      // Older SDK style
+      apiInstance.authentications.apiKey.apiKey = apiKey;
+    } else {
+      console.error("❌ Failed to initialize Brevo API key properly.");
+      return res.status(500).json({ error: "Brevo initialization failed" });
+    }
 
-
-
+    // ✅ Send the booking email
     await apiInstance.sendTransacEmail({
       sender: { name: "FastPoint Cab", email: "fastpointcab@gmail.com" },
       to: [{ email: "fastpointcab@gmail.com" }],
