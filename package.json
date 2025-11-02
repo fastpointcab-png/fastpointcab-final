@@ -6,9 +6,10 @@
     "dev": "node api/server.js",
     "start": "node api/server.js"
   },
-  "engines": {
-    "node": "22.x"
-  },
+"engines": {
+  "node": "18.x"
+}
+,
   "dependencies": {
     "express": "^4.21.2",
     "cors": "^2.8.5",
