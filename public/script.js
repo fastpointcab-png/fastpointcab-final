@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       try {
-        const res = await fetch('api/server.js', {
+        // ✅ FIXED: Correct API endpoint
+        const res = await fetch('/api/book', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
@@ -33,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
           alert('✅ Booking submitted successfully!');
           form.reset();
         } else {
+          console.error('❌ Server error response:', data);
           alert('❌ Failed to send booking: ' + (data.error || 'Unknown error'));
         }
       } catch (error) {
