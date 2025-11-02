@@ -1,9 +1,9 @@
 {
-  "name": "fastpointcab-final",
+  "name": "fastpoint-cab-fixed",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node --watch api/server.js",
+    "dev": "node api/server.js",
     "start": "node api/server.js"
   },
   "engines": {
