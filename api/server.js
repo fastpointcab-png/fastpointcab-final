@@ -9,16 +9,20 @@ import { fileURLToPath } from "url";
 dotenv.config();
 const app = express();
 
-
-// Helpers to locate current directory (for ES modules)
+// Helpers for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Serve your frontend folder (update "public" if needed)
+// ✅ Serve frontend files (make sure your index.html is inside `public`)
 app.use(express.static(path.join(__dirname, "../public")));
+
+// --- Test API ---
+app.get("/api/test", (req, res) => {
+  res.json({ message: "✅ API is alive and working" });
+});
 
 // --- Booking API route ---
 app.post("/api/book", async (req, res) => {
@@ -55,23 +59,16 @@ app.post("/api/book", async (req, res) => {
   }
 });
 
-// ✅ Fallback route: send index.html for all unknown routes
+// ✅ Fallback route — serve index.html for any unknown path
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-
-
-
-// --- Local run ---
+// --- Local run only ---
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
-
-  
 }
 
-
-  export default app;
+// ✅ Export for Vercel
+export default app;
