@@ -16,14 +16,17 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Serve frontend
-app.use(express.static(path.join(__dirname, "../public")));
+// ✅ Serve frontend (only in local dev)
+if (process.env.NODE_ENV !== "production") {
+  app.use(express.static(path.join(__dirname, "../public")));
+}
 
-// --- API Route ---
+// --- 📩 API Route ---
 app.post("/api/book", async (req, res) => {
   try {
     const { name, phone, pickup, drop, date, time, vehicle } = req.body;
 
+    // ✅ Validate inputs
     if (!name || !phone || !pickup || !drop) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -31,10 +34,15 @@ app.post("/api/book", async (req, res) => {
     console.log("📩 Booking received:", req.body);
     console.log("🔑 Using BREVO_API_KEY:", process.env.BREVO_API_KEY ? "✅ exists" : "❌ missing");
 
+    // ✅ Ensure Brevo API key exists
+    if (!process.env.BREVO_API_KEY) {
+      return res.status(500).json({ error: "Server misconfigured: Missing BREVO_API_KEY" });
+    }
+
     const client = new brevo.TransactionalEmailsApi();
     client.authentications["apiKey"].apiKey = process.env.BREVO_API_KEY;
 
-    await client.sendTransacEmail({
+    const emailData = {
       sender: { name: "FastPoint Cab", email: "fastpointcab@gmail.com" },
       to: [{ email: "fastpointcab@gmail.com" }],
       subject: "🚖 New Taxi Booking Request",
@@ -48,26 +56,29 @@ app.post("/api/book", async (req, res) => {
         <p><b>Time:</b> ${time}</p>
         <p><b>Vehicle:</b> ${vehicle}</p>
       `,
-    });
+    };
 
+    await client.sendTransacEmail(emailData);
     console.log("✅ Email sent successfully!");
     res.status(200).json({ success: true, message: "Booking sent successfully!" });
   } catch (err) {
-    console.error("❌ Booking error:", err);
-    res.status(500).json({ error: err.message || "Server error" });
+    console.error("❌ Booking error:", err.message);
+    res.status(500).json({ error: "Server error: " + err.message });
   }
 });
 
-// ✅ Fallback: frontend routes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
-});
+// ✅ Fallback route (only for local frontend)
+if (process.env.NODE_ENV !== "production") {
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../public/index.html"));
+  });
+}
 
-// --- Local development ---
+// --- 🧩 Local development ---
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 }
 
-// --- Export for Vercel ---
+// --- ✅ Export for Vercel ---
 export default app;
